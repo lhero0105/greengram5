@@ -27,7 +27,7 @@ spring:
       max-request-size: 15MB
   datasource:
     #driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:log4jdbc:mariadb://192.168.0.84:3306/greengram5
+    url: jdbc:log4jdbc:mariadb://localhost:8080/greengram5
     username: root
     password: green502
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
@@ -132,3 +132,20 @@ spring:
       on-profile: "prod2"
 server:
   port: 8082
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: "jpa"
+  datasource:
+    url: jdbc:log4jdbc:mariadb://localhost:3306/greengram5_jpa
+    password: green502
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

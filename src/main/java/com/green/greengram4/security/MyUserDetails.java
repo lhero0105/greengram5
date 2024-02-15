@@ -1,6 +1,6 @@
 package com.green.greengram4.security;
 
-import com.green.greengram4.user.model.UserEntity;
+import com.green.greengram4.user.model.UserModel;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -20,7 +19,7 @@ public class MyUserDetails implements UserDetails, OAuth2User {
 
     private MyPrincipal myPrincipal;
     private Map<String, Object> attributes;
-    private UserEntity userEntity;
+    private UserModel userModel;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -39,7 +38,7 @@ public class MyUserDetails implements UserDetails, OAuth2User {
     public String getPassword() { return null; }
 
     @Override
-    public String getUsername() { return userEntity.getUid(); }
+    public String getUsername() { return userModel == null ? null : userModel.getUid(); }
 
     @Override
     public boolean isAccountNonExpired() {
