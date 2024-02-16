@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 @Entity
+@MappedSuperclass
 // 무조건 pk가 적용되어야 함
 @Table(name = "t_feed_comment")
 public class FeedCommentEntity extends BaseEntity{
