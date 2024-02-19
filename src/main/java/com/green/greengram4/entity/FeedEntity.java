@@ -15,13 +15,13 @@ import java.util.List;
 @Table(name = "t_feed")
 public class FeedEntity extends BaseEntity{
     @Id
-    @Column(columnDefinition = "BIGINT UNSIGNED")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(columnDefinition = "BIGINT UNSIGNED")
     private Long ifeed;
 
     @ManyToOne
-    @JoinColumn(name = "iuser", columnDefinition = "BIGINT UNSIGNED", nullable = false)
-    private UserEntity UserEntity;
+    @JoinColumn(name = "iuser", nullable = false)
+    private UserEntity userEntity;
 
     @Column(length = 1000)
     private String contents;
@@ -33,5 +33,5 @@ public class FeedEntity extends BaseEntity{
     @ToString.Exclude // toString시 배제
     // mappedBy 양방향, 빼면 테이블이 추가됩니다.
     @OneToMany(mappedBy = "feedEntity", cascade = CascadeType.PERSIST)
-    private List<FeedPicsEntity> feedPicsEntityList = new ArrayList<>();
+    private List<FeedPicsEntity> feedPicsEntityList = new ArrayList();
 }

@@ -12,11 +12,11 @@ import com.green.greengram4.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +32,7 @@ public class FeedService {
     private final MyFileUtils myFileUtils;
     private final FeedRepository repository;
     private final UserRepository userRepository;
+    private final FeedCommentRepository feedCommentRepository;
 
     @Transactional
     public FeedPicsInsDto postFeed(FeedInsDto dto) {
@@ -45,7 +46,7 @@ public class FeedService {
         UserEntity userEntity = userRepository.getReferenceById((long)authenticationFacade.getLoginUserPk());
 
         FeedEntity feedEntity = FeedEntity.builder()
-                .UserEntity(userEntity)
+                .userEntity(userEntity)
                 .location(dto.getLocation())
                 .contents(dto.getContents())
                 .build();
@@ -95,14 +96,46 @@ public class FeedService {
     }*/
 
     public List<FeedSelVo> getFeedAll(FeedSelDto dto, Pageable pageable) {
-        List<FeedSelVo> list = null;
+        List<FeedEntity> feedEntityList = null;
         if(dto.getIsFavList() == 0 && dto.getTargetIuser() > 0) {
             UserEntity userEntity = new UserEntity();
             userEntity.setIuser((long)dto.getTargetIuser());
-            List<FeedEntity> feedEntityList = repository.findAllByUserEntityOrderByIfeedDesc(userEntity, pageable);
+            feedEntityList = repository.findAllByUserEntityOrderByIfeedDesc(userEntity, pageable);
         }
 
-        System.out.println("!!!!!");
+        return feedEntityList == null
+                ? new ArrayList<>()
+                : feedEntityList.stream().map(item ->{ // 이때 item은 feedEntity, return시 중괄호사용
+
+                    UserEntity userEntity = item.getUserEntity();
+
+                    List<FeedCommentSelVo> cmtList = feedCommentRepository.findAllTop4ByFeedEntity(item).stream().map(omt -> // 이때 omt는 feedCommentEntity
+                            FeedCommentSelVo.builder()
+                                    .ifeedComment(omt.getIfeedComment().intValue())
+                                    .comment(omt.getComment())
+                                    .createdAt(omt.getCreatedAt().toString())
+                                    .writerIuser(userEntity.getIuser().intValue())
+                                    .writerNm(userEntity.getNm())
+                                    .writerPic(userEntity.getPic())
+                                    .build()
+                    ).collect(Collectors.toList());
+
+
+
+                    return FeedSelVo.builder()
+                            .ifeed(item.getIfeed().intValue())
+                            .contents(item.getContents())
+                            .location(item.getLocation())
+                            .createdAt(item.getCreatedAt().toString())
+                            .writerIuser(item.getUserEntity().getIuser().intValue())
+                            .writerNm(item.getUserEntity().getNm())
+                            .writerPic(userEntity.getPic())
+                            .comments(omtList)
+                            .build();
+        }
+        ).collect(Collectors.toList());
+
+/*        System.out.println("!!!!!");
         list = mapper.selFeedAll(dto);
 
         FeedCommentSelDto fcDto = new FeedCommentSelDto();
@@ -122,7 +155,7 @@ public class FeedService {
                 comments.remove(comments.size() - 1);
             }
         }
-        return list;
+        return list;*/
     }
 
     /*public List<FeedSelVo> getFeedAll(FeedSelDto dto) {
