@@ -2,6 +2,7 @@ package com.green.greengram4.feed;
 
 import com.green.greengram4.common.*;
 import com.green.greengram4.entity.FeedEntity;
+import com.green.greengram4.entity.FeedFavIds;
 import com.green.greengram4.entity.FeedPicsEntity;
 import com.green.greengram4.entity.UserEntity;
 import com.green.greengram4.exception.FeedErrorCode;
@@ -32,7 +33,8 @@ public class FeedService {
     private final MyFileUtils myFileUtils;
     private final FeedRepository repository;
     private final UserRepository userRepository;
-    private final FeedCommentRepository feedCommentRepository;
+    private final FeedCommentRepository commentRepository;
+    private final FeedFavRepository favRepository;
 
     @Transactional
     public FeedPicsInsDto postFeed(FeedInsDto dto) {
@@ -104,35 +106,51 @@ public class FeedService {
         }
 
         return feedEntityList == null
-                ? new ArrayList<>()
-                : feedEntityList.stream().map(item ->{ // 이때 item은 feedEntity, return시 중괄호사용
+                ? new ArrayList()
+                : feedEntityList.stream().map(item -> {
 
+                    FeedFavIds feedFavIds = new FeedFavIds();
+                    feedFavIds.setIuser((long)authenticationFacade.getLoginUserPk());
+                    feedFavIds.setIfeed(item.getIfeed());
+                    int isFav = favRepository.findById(feedFavIds).isPresent() ? 1 : 0;
+
+                    List<FeedPicsEntity> picEntityList = item.getFeedPicsEntityList();
+                    List<String> picList = picEntityList.stream().map(pic -> pic.getPic()).collect(Collectors.toList());
+
+                    List<FeedCommentSelVo> cmtList = commentRepository.findAllTop4ByFeedEntity(item)
+                            .stream()
+                            .map(cmt ->
+                                    FeedCommentSelVo.builder()
+                                            .ifeedComment(cmt.getIfeedComment().intValue())
+                                            .comment(cmt.getComment())
+                                            .createdAt(cmt.getCreatedAt().toString())
+                                            .writerIuser(cmt.getUserEntity().getIuser().intValue())
+                                            .writerNm(cmt.getUserEntity().getNm())
+                                            .writerPic(cmt.getUserEntity().getPic())
+                                            .build()
+                            ).collect(Collectors.toList());
+                    //cmtList가 4개이면 > isMoreComment = 1, cmtList에 마지막 하나는 제거
+                    //else > isMoreComment = 0, cmtList는 변화가 없다.
+                    int isMoreComment = 0;
+                    if(cmtList.size() > 3) {
+                        isMoreComment = 1;
+                        cmtList.remove(cmtList.size() - 1);
+                    }
                     UserEntity userEntity = item.getUserEntity();
-
-                    List<FeedCommentSelVo> cmtList = feedCommentRepository.findAllTop4ByFeedEntity(item).stream().map(omt -> // 이때 omt는 feedCommentEntity
-                            FeedCommentSelVo.builder()
-                                    .ifeedComment(omt.getIfeedComment().intValue())
-                                    .comment(omt.getComment())
-                                    .createdAt(omt.getCreatedAt().toString())
-                                    .writerIuser(userEntity.getIuser().intValue())
-                                    .writerNm(userEntity.getNm())
-                                    .writerPic(userEntity.getPic())
-                                    .build()
-                    ).collect(Collectors.toList());
-
-
-
                     return FeedSelVo.builder()
                             .ifeed(item.getIfeed().intValue())
                             .contents(item.getContents())
                             .location(item.getLocation())
                             .createdAt(item.getCreatedAt().toString())
-                            .writerIuser(item.getUserEntity().getIuser().intValue())
-                            .writerNm(item.getUserEntity().getNm())
+                            .writerIuser(userEntity.getIuser().intValue())
+                            .writerNm(userEntity.getNm())
                             .writerPic(userEntity.getPic())
-                            .comments(omtList)
+                            .isMoreComment(isMoreComment)
+                            .pics(picList)
+                            .comments(cmtList)
+                            .isFav(isFav)
                             .build();
-        }
+                }
         ).collect(Collectors.toList());
 
 /*        System.out.println("!!!!!");
