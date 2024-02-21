@@ -34,4 +34,8 @@ public class FeedEntity extends BaseEntity{
     // mappedBy 양방향, 빼면 테이블이 추가됩니다.
     @OneToMany(mappedBy = "feedEntity", cascade = CascadeType.PERSIST)
     private List<FeedPicsEntity> feedPicsEntityList = new ArrayList();
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "feedEntity")
+    private List<FeedFavEntity> feedFavList = new ArrayList<>();
 }

@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 // createdAt, updatedAt 둘 다 사용 시
 @Data
+@MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 // 엔티티를 DB에적용하기전 AuditingEntityListener를 호출해 공통 처리
 // 등록 수정 시 사용

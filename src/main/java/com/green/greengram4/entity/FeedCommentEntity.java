@@ -2,10 +2,10 @@ package com.green.greengram4.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
-@MappedSuperclass
 // 무조건 pk가 적용되어야 함
 @Table(name = "t_feed_comment")
 public class FeedCommentEntity extends BaseEntity{

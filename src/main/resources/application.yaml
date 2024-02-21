@@ -115,8 +115,8 @@ spring:
     activate:
       on-profile: "prod1"
   datasource:
-    url: jdbc:mariadb://192.168.0.144:55/greengram3
-    password: greendev1
+    url: jdbc:log4jdbc:mariadb://localhost:8080/greengram5
+    password: green502
 
 file:
   dir: /home/download/
@@ -149,6 +149,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        default_batch_fetch_size: 100
+        # 100번까지는 pk값을 정리해서 보냄. 근본적인 n+1 해결 불가
     open-in-view: false
     generate-ddl: true
     # create일 때만 적용됩니다.

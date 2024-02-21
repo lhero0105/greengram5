@@ -96,7 +96,15 @@ public class FeedService {
         int feedPicsAffectedRows = picsMapper.insFeedPics(pDto);
         return pDto;
     }*/
-
+    @Transactional
+    public List<FeedSelVo> getFeedAll(FeedSelDto dto, Pageable pageable) {
+        List<FeedSelVo> list = repository.selFeedAll(
+                (long)authenticationFacade.getLoginUserPk()
+                        , null
+                , pageable);
+        return list;
+    }
+    /*@Transactional
     public List<FeedSelVo> getFeedAll(FeedSelDto dto, Pageable pageable) {
         List<FeedEntity> feedEntityList = null;
         if(dto.getIsFavList() == 0 && dto.getTargetIuser() > 0) {
@@ -116,8 +124,10 @@ public class FeedService {
 
                     List<FeedPicsEntity> picEntityList = item.getFeedPicsEntityList();
                     List<String> picList = picEntityList.stream().map(pic -> pic.getPic()).collect(Collectors.toList());
+                    // String 형변환
 
                     List<FeedCommentSelVo> cmtList = commentRepository.findAllTop4ByFeedEntity(item)
+                            //FeedCommentSelVo로 형변환
                             .stream()
                             .map(cmt ->
                                     FeedCommentSelVo.builder()
@@ -153,7 +163,7 @@ public class FeedService {
                 }
         ).collect(Collectors.toList());
 
-/*        System.out.println("!!!!!");
+*//*        System.out.println("!!!!!");
         list = mapper.selFeedAll(dto);
 
         FeedCommentSelDto fcDto = new FeedCommentSelDto();
@@ -173,8 +183,8 @@ public class FeedService {
                 comments.remove(comments.size() - 1);
             }
         }
-        return list;*/
-    }
+        return list;*//*
+    }*/
 
     /*public List<FeedSelVo> getFeedAll(FeedSelDto dto) {
         System.out.println("!!!!!");
