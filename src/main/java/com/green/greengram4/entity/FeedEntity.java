@@ -19,7 +19,7 @@ public class FeedEntity extends BaseEntity{
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private Long ifeed;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "iuser", nullable = false)
     private UserEntity userEntity;
 
@@ -35,7 +35,7 @@ public class FeedEntity extends BaseEntity{
     @OneToMany(mappedBy = "feedEntity", cascade = CascadeType.PERSIST)
     private List<FeedPicsEntity> feedPicsEntityList = new ArrayList();
 
-    @ToString.Exclude
+/*    @ToString.Exclude
     @OneToMany(mappedBy = "feedEntity")
-    private List<FeedFavEntity> feedFavList = new ArrayList<>();
+    private List<FeedFavEntity> feedFavList = new ArrayList<>();*/
 }

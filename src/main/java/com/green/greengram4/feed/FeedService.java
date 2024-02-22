@@ -1,10 +1,7 @@
 package com.green.greengram4.feed;
 
 import com.green.greengram4.common.*;
-import com.green.greengram4.entity.FeedEntity;
-import com.green.greengram4.entity.FeedFavIds;
-import com.green.greengram4.entity.FeedPicsEntity;
-import com.green.greengram4.entity.UserEntity;
+import com.green.greengram4.entity.*;
 import com.green.greengram4.exception.FeedErrorCode;
 import com.green.greengram4.exception.RestApiException;
 import com.green.greengram4.feed.model.*;
@@ -96,14 +93,50 @@ public class FeedService {
         int feedPicsAffectedRows = picsMapper.insFeedPics(pDto);
         return pDto;
     }*/
+
     @Transactional
     public List<FeedSelVo> getFeedAll(FeedSelDto dto, Pageable pageable) {
-        List<FeedSelVo> list = repository.selFeedAll(
-                (long)authenticationFacade.getLoginUserPk()
-                        , null
-                , pageable);
-        return list;
+        long loginIuser = authenticationFacade.getLoginUserPk();
+        dto.setLoginedIuser(loginIuser);
+        final List<FeedEntity> list = repository.selFeedAll(dto, pageable);
+        final List<FeedPicsEntity> picList = repository.selFeedPicsAll(list); // n+1 이슈 해결
+        final List<FeedFavEntity> favList = dto.getIsFavList() == 1 ? null : repository.selFeedFavAllByMe(list, loginIuser);
+        final List<FeedCommentSelVo> cmtList = commentMapper.selFeedCommentEachTop4(list);
+
+        return list.stream().map(item -> {
+                    // ifeed에 해당하는 댓글만 뽑아내기
+            List<FeedCommentSelVo> eachCommentList = cmtList.stream().filter(t -> item.getIfeed() == t.getIfeed()).collect(Collectors.toList());
+            int isMoreComment = 0;
+            if(eachCommentList.size() > 3) {
+                isMoreComment = 1;
+                eachCommentList.remove(eachCommentList.size() - 1);
+            }
+                    return FeedSelVo.builder()
+                            .ifeed(item.getIfeed().intValue())
+                            .location(item.getLocation())
+                            .contents(item.getContents())
+                            .createdAt(item.getCreatedAt().toString())
+                            .writerIuser(item.getUserEntity().getIuser().intValue())
+                            .writerNm(item.getUserEntity().getNm())
+                            .writerPic(item.getUserEntity().getPic())
+                            .pics(picList.stream()
+                                    .filter(pic -> pic.getFeedEntity().getIfeed() == item.getIfeed()) // Predicate 리턴타입 boolean, 트루를 리턴해주는 애들만 따로 뽑아서 리턴
+                                    .map(pic -> pic.getPic())
+                                    .collect(Collectors.toList())
+                            ) // feedentity의 ifeed값과 일치할 때
+                            .isFav(dto.getIsFavList() == 1
+                                    ? 1
+                                    : favList.stream().anyMatch(fav -> fav.getFeedEntity().getIfeed() == item.getIfeed())
+                                    ? 1
+                                    : 0
+                            )
+                            .comments(eachCommentList)
+                            .isMoreComment(isMoreComment)
+                            .build();
+                }
+        ).collect(Collectors.toList());
     }
+
     /*@Transactional
     public List<FeedSelVo> getFeedAll(FeedSelDto dto, Pageable pageable) {
         List<FeedEntity> feedEntityList = null;
