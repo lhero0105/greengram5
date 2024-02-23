@@ -26,7 +26,7 @@ import static com.green.greengram4.entity.QFeedPicsEntity.feedPicsEntity;
 public class FeedQdslRepositoryImpl implements FeedQdslRepository{
     private final JPAQueryFactory jpaQueryFactory;
 
-
+//
     @Override
     public List<FeedEntity> selFeedAll(FeedSelDto dto, Pageable pageable) {
 
